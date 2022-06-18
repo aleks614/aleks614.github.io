@@ -1,3 +1,4 @@
 theme: jekyll-theme-architect
 title: Welcome to the homepage of Alex Bevz!
 description: This site is for the purpose of adding content for course CS499 Computer Science Capstone
+show_downloads: true
