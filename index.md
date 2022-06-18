@@ -62,6 +62,7 @@ Therefore, I added another parameter to the UserLogin object to check whether th
 In compareGoalWeight(), there is an If-Else branch to deal with an edited daily weight versus a new daily weight. If a daily weight was edited, then the Id of the edited daily weight is used to get the daily weight value and compare it with the goal weight. If a new daily weight was added, then only the last daily weight is checked against the goal weight. In either case, if the daily weight equals the goal weight, then sendSMS() is called. In the case of an edited daily weight, the alertEditedDW variable is then set back to -1 to prevent multiple SMS messages from being sent every time onResume() executes.
 
 With this enhancement, I met the following course outcomes: 
+
 * CS-499-01: Employ strategies for building collaborative environments that enable diverse audiences to support organizational decision making in the field of computer science
     * I met this outcome in my code review, as I showed that I was able to create a thorough code review experience. In this enhancement, I also met this outcome by providing inline comments that provide context to help others understand the code’s purpose and the decision-making that went into the application. 
 * CS-499-02: Design, develop, and deliver professional-quality oral, written, and visual communications that are coherent, technically sound, and appropriately adapted to specific audiences and contexts
@@ -88,6 +89,35 @@ Here are some images showing the SMS notifications in action:
 ## Enhancement 3: Databases
 
 ### Enhancement 3 Narrative:
+
+For Enhancement 3, I enhanced the database in my Weight Tracker application which I developed in November and December 2021 for course CS360 at SNHU. I wanted to include this artifact in my portfolio because it showcases my skills in all three categories for the final project. For databases specifically, this artifact shows that I can construct a database to store data that is used in my application. Not only is data able to be stored, but it is also able to be accessed so that information can be displayed in the UI. This database is also dynamic because it allows data to be updated by users. For example, there are methods to add users, add goal weights, add daily weights, and to update and remove these items as well. Therefore, this artifact shows that I have skills necessary for database creation and management, particularly in SQLite.
+
+For this enhancement, I improved the artifact in two ways. First, I made critical user information (usernames and passwords) more secure by adding XOR encryption to the database (WeightTrackerDatabase.java, encryptOrDecrypt() method). When a user is created, their credentials are encrypted when they get stored in the database. In the methods that are responsible for getting lists or objects from the database (example: getUserByUsername()), the username is decrypted so that it is in usable form in the returned object (the password stays encrypted for security reasons). This is necessary as many activities in the application use the username to make sure the data is displayed or updated/deleted for the correct user. Additionally, in methods that update/delete objects (example: updateGoalWeight()), the username is again encrypted before the object information is updated in, or deleted from, the database. 
+
+One challenge I experienced was that some functions did not work correctly after I made these changes. For example, the user information was not updated appropriately when I tried to add SMS permissions for one user. I realized that I forgot to change one of the db.update() commands to use the encrypted username in WeightTrackerDatabase.java (specifically the updateUser() method. This was a simple fix, but it was a good reminder to move slowly to avoid errors. 
+
+For the second improvement, I added the feature of role-based access so that there could be an admin role that is able to have more control over the database by being able to update and delete users. This required adding a userRole parameter to the UserLogin class, as well as an additional column to the users table in the database. In LoginRegisterActivity, the default admin is created (if it does not already exist) through the createAdminUser() method. I also had to create a couple of activities for the admin to be able to manage users. In DisplayDataActivity, there is a check for user role, and if the user role is adminUser, then the admin icon is visible in the app bar. Once the admin icon is clicked, AdminActivity launches. This activity shows a recycler view of current users, and each user has an edit and a delete button. If the edit button is clicked, then the EditUserActivity launches, which allows the admin to change the user’s role. 
+
+While I was making this update, I learned to enhance my security by making the edit and delete buttons invisible for the default admin. This is because other admins could delete or edit this user. If the default admin was deleted, then it would just be recreated upon startup of the LoginRegisterActivity. However, there wasn’t a safeguard in place for ensuring the user role would remain adminUser, so I just decided it would be best to remove the edit and delete options altogether. 
+
+With this enhancement, I did meet the course outcomes of:
+
+* CS-499-01: Employ strategies for building collaborative environments that enable diverse audiences to support organizational decision making in the field of computer science
+    * I met this outcome in my code review, as I showed that I was able to create a thorough code review experience. In this enhancement, I also met this outcome by providing inline comments that provide context to help others understand the code’s purpose and the decision-making that went into the application. 
+* CS-499-02: Design, develop, and deliver professional-quality oral, written, and visual communications that are coherent, technically sound, and appropriately adapted to specific audiences and contexts
+    * I met this outcome by detailing my experience within this narrative as I explain clearly and concisely my decision making process when working on this enhancement.    
+* CS-499-04:  Demonstrate an ability to use well-founded and innovative techniques, skills, and tools in computing practices for the purpose of implementing computer solutions that deliver value and accomplish industry-specific goals   
+   * I met this outcome by showing that I am able to use the well-founded technique of XOR encryption. This is an important industry-specific goal because it provides security of sensitive customer information. I also attempted some innovative techniques when designing my administrator user. Although it is not a new concept, it is not something I have done before and I was able to figure out how to make this kind of user that has more oversight over the database. 
+* CS-499-05: Develop a security mindset that anticipates adversarial exploits in software architecture and designs to expose potential vulnerabilities, mitigate design flaws, and ensure privacy and enhanced security of data and resources    
+    * I met this outcome because this enhancement provides more the security over the database. With the creation of the admin user specifically, I mitigated the design flaw of allowing other admins to delete or edit the default admin by removing those options entirely.
+
+Here are some screenshots showing the improvements made in Enhancement 3:
+
+* A look at the [Database Inspector](./encrypted_database.png), which shows all usernames and passwords are encrypted
+* [WeightDisplayActivity](./admin_icon.png) for a user with adminUser role; the admin icon is present in the app bar
+* When the admin icon is clicked, [AdminActivity](./AdminActivity.png) launches, showing a list of users. Each user has an edit and delete button
+* When the Edit button is clicked for a user, [EditUserActivity](./EditUserActivity.png) launches and allows the admin to change the user’s role
+* When a user role is selected, the button becomes [disabled to show the selection and the Save button appears](./EditUserActivity_select_role.png). When Save is clicked, the user role becomes updated
 
 
 ### Enhancement 3 Overview:
