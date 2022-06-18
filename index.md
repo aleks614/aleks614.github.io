@@ -33,13 +33,13 @@ While I was making my enhancements, I learned a lot. While I was doing my code r
 I also added a new color scheme which has more muted colors to appeal to a wider variety of users. I also updated the font and made the layouts look cleaner by removing certain unnecessary TextView fields (for example, on the login screen, I removed the “Username:” and “Password:” TextView fields and instead put a hint into the edit texts that say “Enter username” or “Enter password”). This makes the layout look a lot cleaner. Additionally, I added more dimension to the appearance by making the button corners more rounded, and by adding a lighter-colored, rounded square behind some text fields and image buttons. To further clean up the login screen, I removed a TextView field that was being used to display a message for successful registrations, unsuccessful registrations, and invalid credentials. I added dialog fragments to display these messages instead. 
 
 Here are some images of the new UI:
-* [LoginRegisterActivity](./Enh1 - LoginRegisterActivity.png)
-* [LoginRegisterActivity showing one example of a dialog message] (./Enh1 - LoginRegisterActivity dialog.png)
-* [WeightDisplayActivity](./Enh1 - WeightDisplayActivity.png)
-* [GoalWeightActivity](./Enh1 - GoalWeightActivity.png)
-* [DailyWeightActivity](./Enh1 - DailyWeightActivity.png)
-* [DailyWeightActivity date picker](./Enh1 - DailyWeightActivity date picker.png)
-* [smsPermissionActivity](./Enh1 - smsPermissionActivity.png)
+* [LoginRegisterActivity](./LoginRegisterActivity.png)
+* [LoginRegisterActivity showing one example of a dialog message](./LoginRegisterActivity_dialog.png)
+* [WeightDisplayActivity](./WeightDisplayActivity.png)
+* [GoalWeightActivity](./GoalWeightActivity.png)
+* [DailyWeightActivity](./DailyWeightActivity.png)
+* [DailyWeightActivity date picker](./DailyWeightActivity_date_picker.png)
+* [smsPermissionActivity](./smsPermissionActivity.png)
             
 
 ### Enhancement 1 Overview:
