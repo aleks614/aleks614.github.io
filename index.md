@@ -49,6 +49,38 @@ Here are some images of the new UI:
 
 ### Enhancement 2 Narrative:
 
+For Enhancement 2, I fixed an issue in my Weight Tracker application which I developed in November and December 2021 for course CS360 at SNHU. I wanted to include this artifact in my portfolio because it showcases my skills in all three categories for the final project. One of the requirements for this application was that it would allow a user to opt in to receive SMS notifications when they reached their goal weight. When I first created this project, the SMS notification feature did not work, so I decided to fix it for this enhancement.  This required that I update my application to include more complex algorithms and data structures that would be responsible for 1) checking the user has opted in for SMS notifications, and 2) checking if the user has reached their goal weight. 
+
+Three issues with my original project were that (1) I was using a deprecated method to launch the smsPermissionActivity from WeightDisplayActivity; (2) the compareGoalWeight() method in WeightDisplayActivity looped through all of a user’s daily weights to check if the goal weight had been reached; (3) the Android Manifest was missing the lines that allow it to send SMS messages. In my original project, my intention was to get the user’s response (yes or no) back from smsPermissionActivity, then if the user’s response was yes, to loop through all of that user’s daily weights and send an SMS if one of them was equal to the goal weight. The problem with this approach is that the user’s response would not be associated with that specific user (the variable storing this information was not associated with a UserLogin object), and that the user would receive multiple SMS messages for any single daily weight that equaled the goal weight (due to the loop).
+
+I fixed the first issue by replacing the deprecated startActivityForResult method with an ActivityResultLauncher in WeightDisplayActivity.java. Instead of launching and trying to get a result back from smsPermissionActivity, I chose to launch DailyWeightActivity. This way, once DailyWeightActivity ended, the onActivityResult() method in the ActivityResultLauncher would execute. This method checks to see if the user has allowed SMS notifications. This information is stored in a new parameter of the UserLogin class, receiveSMS. By default, this variable is set to “no” when a user is created. If the user chooses “yes” in smsPermissionActivity, this value is then changed to “yes” and the user is updated in the database. 
+
+Whenever a user finishes adding a new daily weight, onActivityResult() method in the ActivityResultLauncher will execute. If the user has allowed SMS notifications, then compareGoalWeight() executes. One challenge I faced was getting this method to execute after a user edited a daily weight. I wanted the SMS notification feature to work if an edited daily weight equaled the goal weight as well. So I merged EditDailyWeightActivity into DailyWeightActivity (and then deleted EditDailyWeightActivity), hoping this would resolve the issue. However, this did not work because the onActivityResult() method in WeightDisplayActivity only executes when DailyWeightActivity ends, but only if DailyWeightActivity was launched by the ActivityResultLauncher (which was only tied to the Add New Daily Weight button onClick method). I could not use an ActivityResultLauncher in RecyclerViewAdapter.java (where the edit button onClick method is for daily weights). 
+
+Therefore, I added another parameter to the UserLogin object to check whether the user has edited a daily weight. This parameter is called alertEditedDW. When a new user is created, this variable is set to -1 (meaning no edited daily weights). After a user edits a daily weight, this value now changes to equal the Id of the edited daily weight. In OnResume() of WeightDisplayActivity, the user’s alertEditedDW value is checked. If it is not -1 (meaning a daily weight has been edited), then compareGoalWeight() executes. 
+
+In compareGoalWeight(), there is an If-Else branch to deal with an edited daily weight versus a new daily weight. If a daily weight was edited, then the Id of the edited daily weight is used to get the daily weight value and compare it with the goal weight. If a new daily weight was added, then only the last daily weight is checked against the goal weight. In either case, if the daily weight equals the goal weight, then sendSMS() is called. In the case of an edited daily weight, the alertEditedDW variable is then set back to -1 to prevent multiple SMS messages from being sent every time onResume() executes.
+
+With this enhancement, I met the following course outcomes: 
+* CS-499-01: Employ strategies for building collaborative environments that enable diverse audiences to support organizational decision making in the field of computer science
+    * I met this outcome in my code review, as I showed that I was able to create a thorough code review experience. In this enhancement, I also met this outcome by providing inline comments that provide context to help others understand the code’s purpose and the decision-making that went into the application. 
+* CS-499-02: Design, develop, and deliver professional-quality oral, written, and visual communications that are coherent, technically sound, and appropriately adapted to specific audiences and contexts
+    * I met this outcome by detailing my experience within this narrative as I explain clearly and concisely my decision making process when working on this enhancement.
+* CS-499-03: Design and evaluate computing solutions that solve a given problem using algorithmic principles and computer science practices and standards appropriate to its solution, while managing the trade-offs involved in design choices
+    * I met this outcome by solving logic problems that existed in my original code and were preventing the SMS notification feature from working as intended. Not only was I able to meet this basic user requirement, but I was able to make it apply to both new daily weights and edited daily weights.
+* CS-499-04:  Demonstrate an ability to use well-founded and innovative techniques, skills, and tools in computing practices for the purpose of implementing computer solutions that deliver value and accomplish industry-specific goals
+    * I met this outcome by showing that I can be innovative, which I had to do to get the SMS notifications to work for edited daily weights as well as new daily weights. As mentioned previously, I struggled with this part and tried multiple different things which helped bring out my innovative problem solving skills. 
+
+This enhancement was difficult mostly because I struggled with getting the SMS notifications to send when a daily weight was edited. By working through this challenge in the ways I described above, I showed that I can use innovative skills and techniques that involved making my data structures and algorithms more complex to handle different circumstances. 
+
+Here are some images showing the SMS notifications in action:
+
+* [A user’s **new** daily weight (6/18/2022, 220) equals the goal weight](./new_DW.png)
+    * [SMS received for this](./SMS_new_DW.png)
+
+* [A user’s **edited** daily weight (5/28/2022, 220) equals the goal weight](./edited_DW.png)
+    * [SMS received for this](./SMS_edited_DW.png)
+
 
 ### Enhancement 2 Overview:
 
