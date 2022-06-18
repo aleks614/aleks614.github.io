@@ -85,6 +85,140 @@ Here are some images showing the SMS notifications in action:
 
 ## Highlights of Enhancement 2:
 
+With this enhancement, the [UserLogin](./UserLogin.java) data structure gained some more complexity by having two parameters added to store the permission allowance and whether the user has edited a daily weight. 
+
+[smsPermissionActivity.java](./smsPermissionActivity.java) is responsible for allowing the user to opt in to receive SMS notifications. When a user opts in, they can enter their phone number and then click save. This saves the user's phone number and their acceptance to receive SMS notifications to the user object, which is then saved to the database: 
+
+```java
+    // onclick method to save user's entered phone number
+    public void onSaveClick(View view) {
+
+        //get phone number from edit text
+        String phoneNumber = mEditPhone.getText().toString();
+
+        //update phone number and SMS permissions for user login object
+        mUserLogin.setPhoneNumber(phoneNumber);
+        mUserLogin.setReceiveSMS("yes");
+
+        //update user in db
+        mWeightTrackerDB.updateUser(mUserLogin);
+
+        finish();
+    }
+```
+
+In [WeightDisplayActivity.java](./WeightDisplayActivity.java), when a user clicks the button to add a new daily weight, the following ActivityResultLauncher is used to launch the [DailyWeightActivity](./DailyWeightActivity.java).
+
+```java
+    // Enhancement 2, Part 1 - replaced startActivityForResult and onActivityResult with ActivityResultLauncher
+    // This will be used to launch the DailyWeightActivity rather than the SMSPermissionActivity
+    ActivityResultLauncher<Intent>  weightDisplayActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                //this is only executed when DailyWeightActivity ends, but only if DailyWeightActivity
+                // was launched by this Launcher (i.e. if a new daily weight was added)
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+
+                        //need to get user object again to get up to date value of receiveSMS
+                        mUserLogin = mWeightTrackerDB.getUserByUsername(mUsername);
+                        String receiveSMS = mUserLogin.getReceiveSMS();
+
+                        //if user has allowed SMS notifications, call method to check if goal weight is reached
+                        if (receiveSMS.equals("yes")) {
+                            compareGoalWeight();
+
+                        }
+                    }
+                }
+            }
+    );
+```
+As shown above, if the user has opted in to receive SMS notifications, compareGoalWeight() is called. This only applies to new daily weights, as the ActivityResultLauncher is only used in the onClick method for adding a new daily weight. To account for edited daily weights, the onResume() method in  [WeightDisplayActivity.java](./WeightDisplayActivity.java) was modified: 
+
+```java
+    @Override
+    protected void onResume(){
+        super.onResume();
+
+        // user's goal weight and daily weights are constantly displayed
+        displayGoalWeight();
+        displayDailyWeight();
+
+        //Enhancement 2 - added check to see if the user has edited a daily weight and has allowed SMS notifications
+        //if yes, then compareGoalWeight() will execute
+        mUserLogin = mWeightTrackerDB.getUserByUsername(mUsername);
+        mAlertEditedDW = mUserLogin.getAlertEditedDW();
+        String receiveSMS = mUserLogin.getReceiveSMS();
+
+        if ((mAlertEditedDW != -1) && (receiveSMS.equals("yes"))){  //indicates a daily weight has been edited
+            compareGoalWeight();
+        }
+    }
+```
+
+The compareGoalWeight() method is shown below. This method checks to see if the user has edited or added a new daily weight, and then compares either the new or edited weight to the goal weight. If they are equal, sendSMS() is called to send the text message.  
+
+```java
+// Check for goal weight reached
+    // Enhancement 2 - removed loop which checked for goal weight reached;
+    // instead, only the last added or edited daily weight is checked
+    public void compareGoalWeight() {
+        String date;
+        String weight;
+        List<DailyWeight> dailyWeightList;
+        String goalWeightValue;
+        DailyWeight lastDailyWeight;
+
+        //get goal weight object for user from db
+        mGoalWeight = mWeightTrackerDB.getGoalWeight(mUsername);
+
+        //get goal weight value from goal weight object
+        goalWeightValue = mGoalWeight.getGoalWeightValue();
+
+        //if a daily weight has been edited, check to see if it is equal to goal weight
+        if (mAlertEditedDW != -1) {
+            //get edited DW object from db
+            DailyWeight editedDailyWeight = mWeightTrackerDB.getDailyWeight(mAlertEditedDW);
+
+            //get weight and date from edited DW object
+            weight = editedDailyWeight.getDailyWeight();
+            date = editedDailyWeight.getDate();
+
+            //send SMS if goal weight is reached (daily weight = goal weight)
+            if (weight.equals(goalWeightValue)){
+                sendSMS(date, goalWeightValue);
+            }
+            //update user object's alertEditedDW flag back to -1 so user does not continue to receive SMS for same DW
+            mUserLogin.setAlertEditedDW(-1);
+
+            //update user in db after resetting flag
+            mWeightTrackerDB.updateUser(mUserLogin);
+        }
+        // if no daily weights have been edited, check last entered daily weight
+        else {
+            //get daily weights list and ensure it has data
+            dailyWeightList = loadDailyWeights();
+            if (dailyWeightList.size() != 0) {
+
+                //get last daily weight so only that one is checked (previously looped through all daily weights)
+                lastDailyWeight = dailyWeightList.get(dailyWeightList.size()-1);
+
+                //get weight and date of last DW
+                weight = lastDailyWeight.getDailyWeight();
+                date = lastDailyWeight.getDate();
+
+                //send SMS if goal weight is reached
+                if (weight.equals(goalWeightValue)){
+                    sendSMS(date, goalWeightValue);
+                }
+            }
+        }
+
+    }
+
+```
 
 # Enhancement 3: Databases
 
