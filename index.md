@@ -148,11 +148,12 @@ As shown above, if the user has opted in to receive SMS notifications, compareGo
 
         //Enhancement 2 - added check to see if the user has edited a daily weight and has allowed SMS notifications
         //if yes, then compareGoalWeight() will execute
-        mUserLogin = mWeightTrackerDB.getUserByUsername(mUsername);
-        mAlertEditedDW = mUserLogin.getAlertEditedDW();
-        String receiveSMS = mUserLogin.getReceiveSMS();
+        mUserLogin = mWeightTrackerDB.getUserByUsername(mUsername); //get up to date user object
+        mAlertEditedDW = mUserLogin.getAlertEditedDW();             //get flag to see if user has edited a daily weight
+        String receiveSMS = mUserLogin.getReceiveSMS();             //get user's SMS permission status
 
-        if ((mAlertEditedDW != -1) && (receiveSMS.equals("yes"))){  //indicates a daily weight has been edited
+        //if a daily weight has been edited and user has allowed SMS notifications
+        if ((mAlertEditedDW != -1) && (receiveSMS.equals("yes"))){
             compareGoalWeight();
         }
     }
