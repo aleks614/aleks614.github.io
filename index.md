@@ -1,12 +1,12 @@
-## Aleks Bevz ePortfolio Introduction
+# Aleks Bevz ePortfolio Introduction
  
-## Project Code Review
+# Project Code Review
 
 This code review was performed at the beginning of this course, prior to making any of the enhancements. This review highlights some issues with the starting code and describes the plans for each enhancement.
 
-## Enhancement 1: Software Design and Engineering
+# Enhancement 1: Software Design and Engineering
 
-### Enhancement 1 Narrative:
+## Enhancement 1 Narrative:
 
 For Enhancement 1, I made updates to the UI of my Weight Tracker application which I developed in November and December 2021 for course CS360 at SNHU. I wanted to include this artifact in my portfolio because it showcases my skills in all three categories for the final project. For software development specifically, it shows that I can create an application that meets the user requirements and has an appealing interface. In this enhancement,  I made the UI look more professional and visually appealing; I also fixed the recycler view issue in WeightDisplayActivity.java (the daily weights did not update or delete properly). This shows that I am able to troubleshoot and resolve issues with my work. 
 
@@ -42,12 +42,12 @@ Here are some images of the new UI:
 * [smsPermissionActivity](./smsPermissionActivity.png)
             
 
-### Enhancement 1 Overview:
+## Highlights of Enhancement 1:
 
 
-## Enhancement 2: Algorithms and Data Structure
+# Enhancement 2: Algorithms and Data Structure
 
-### Enhancement 2 Narrative:
+## Enhancement 2 Narrative:
 
 For Enhancement 2, I fixed an issue in my Weight Tracker application which I developed in November and December 2021 for course CS360 at SNHU. I wanted to include this artifact in my portfolio because it showcases my skills in all three categories for the final project. One of the requirements for this application was that it would allow a user to opt in to receive SMS notifications when they reached their goal weight. When I first created this project, the SMS notification feature did not work, so I decided to fix it for this enhancement.  This required that I update my application to include more complex algorithms and data structures that would be responsible for 1) checking the user has opted in for SMS notifications, and 2) checking if the user has reached their goal weight. 
 
@@ -83,12 +83,12 @@ Here are some images showing the SMS notifications in action:
     * [SMS received for this](./SMS_edited_DW.png)
 
 
-### Enhancement 2 Overview:
+## Highlights of Enhancement 2:
 
 
-## Enhancement 3: Databases
+# Enhancement 3: Databases
 
-### Enhancement 3 Narrative:
+## Enhancement 3 Narrative:
 
 For Enhancement 3, I enhanced the database in my Weight Tracker application which I developed in November and December 2021 for course CS360 at SNHU. I wanted to include this artifact in my portfolio because it showcases my skills in all three categories for the final project. For databases specifically, this artifact shows that I can construct a database to store data that is used in my application. Not only is data able to be stored, but it is also able to be accessed so that information can be displayed in the UI. This database is also dynamic because it allows data to be updated by users. For example, there are methods to add users, add goal weights, add daily weights, and to update and remove these items as well. Therefore, this artifact shows that I have skills necessary for database creation and management, particularly in SQLite.
 
@@ -120,7 +120,96 @@ Here are some screenshots showing the improvements made in Enhancement 3:
 * When a user role is selected, the button becomes [disabled to show the selection and the Save button appears](./EditUserActivity_select_role.png). When Save is clicked, the user role becomes updated
 
 
-### Enhancement 3 Overview:
+## Highlights of Enhancement 3:
+
+The following code was added to [WeightTrackerDatabase.java](./WeightTrackerDatabase.java) to create a method for encrypting usernames and passwords: 
+
+```java
+    // Enhancement 3: Add XOR encryption to usernames and passwords.
+    //  This method is called to encrypt when saving to tables, and decrypt when pulling from tables
+    public String encryptOrDecrypt(String input) {
+        String key = "Secret";
+        int inputLength = input.length();
+        int keyLength = key.length();
+        String output = "";
+
+        //ensure input has content
+        assert(inputLength > 0);
+
+        //apply the encryption
+        for (int i=0; i < inputLength; i++){
+            output = output + ((char) (input.charAt(i) ^ key.charAt(i % keyLength)));
+        }
+
+        //encrypted input is returned as "output"
+        return output;
+
+    }
+```java
+
+As seen in one example below, this method is called when saving usernames and passwords to the Users table in the database: 
+
+```java
+    // Add a new user to the database
+    // Enhancement 2 - added SMS and Alert Edited DW columns for SMS notifications
+    // Enhancement 3 - added User Role column due to addition role-based access
+    public boolean addUser(UserLogin userLogin) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(UserTable.COL_USERNAME, encryptOrDecrypt(userLogin.getUsername()));   // store username encrypted
+        values.put(UserTable.COL_PASSWORD, encryptOrDecrypt(userLogin.getPassword()));   // store password encrypted
+        values.put(UserTable.COL_PHONE, userLogin.getPhoneNumber());
+        values.put(UserTable.COL_SMS, userLogin.getReceiveSMS());
+        values.put(UserTable.COL_ALERT_EDITED_DW, userLogin.getAlertEditedDW());
+        values.put(UserTable.COL_USER_ROLE, userLogin.getUserRole());
+        long id = db.insert(UserTable.TABLE, null, values);
+        return id != -1;
+    }
+```java
+
+To add an administrator role, [LoginRegisterActivity.java](./LoginRegisterActivity.java) was modified to create a default admin if one does not already exist:
+
+```java
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login_register);
+
+        ...
+
+        //get instance of weight tracker db
+        mWeightTrackerDB = WeightTrackerDatabase.getInstance(getApplicationContext());
+
+        ...
+
+        // Search database for default/main admin user
+        mAdmin = mWeightTrackerDB.getUserByUsername("admin");
+
+        // if default/main admin does not already exist, create a new one
+        if (mAdmin == null){
+            createAdminUser();
+        }
+    }
+
+    // Enhancement 3, Part 1 - role-based access
+    // to create a default admin if one does not already exist (i.e., upon creation of new version of database)
+    public void createAdminUser(){
+        String username = "admin";
+        String password = "securePassword123";
+        String phoneNumber = "15555215554";   //admin can change this, but setting to my emulator's number for now
+        String receiveSMS = "yes";
+        long alertEditedDW = -1;              //default is that no daily weights have been edited
+        String userRole = "adminUser";
+
+        //create new user object with above values as arguments
+        mAdmin = new UserLogin(username, password, phoneNumber, receiveSMS, alertEditedDW, userRole);
+
+        mWeightTrackerDB.addUser(mAdmin);
+    }
+```java
+
+Additionally, [AdminActivity.java](./AdminActivity.java) and [EditUserActivity.java](./EditUserActivity.java) were created to provide the administrative functions of editing and deleting users.
+
 
 ### Support or Contact
 
