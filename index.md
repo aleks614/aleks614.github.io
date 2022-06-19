@@ -4,6 +4,14 @@
 
 This code review was performed at the beginning of this course, prior to making any of the enhancements. This review highlights some issues with the starting code and describes the plans for each enhancement.
 
+* [Part 1](./CS-499_Code_Review_1_of_7.mp4)
+* [Part 2](./CS-499_Code_Review_2_of_7.mp4)
+* [Part 3](./CS-499_Code_Review_3_of_7.mp4)
+* [Part 4](./CS-499_Code_Review_4_of_7.mp4)
+* [Part 5](./CS-499_Code_Review_5_of_7.mp4)
+* [Part 6](./CS-499_Code_Review_6_of_7.mp4)
+* [Part 7](./CS-499_Code_Review_7_of_7.mp4)
+
 # Enhancement 1: Software Design and Engineering
 
 ## Enhancement 1 Narrative:
