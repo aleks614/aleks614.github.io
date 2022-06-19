@@ -26,6 +26,7 @@ While I was making my enhancements, I learned a lot. While I was doing my code r
 * In the onClick method for the edit button (in RecyclerViewAdapter.java), I was passing the username as an extra to the intent that launched the EditDailyWeightActivity, but I should have been using the ID of the daily weight. I changed this so that I could be sure the correct daily weight entry would be updated.
 * In EditDailyWeightActivity.java, I was incorrectly creating a new daily weight object instead of updating the existing one. 
     * I fixed this by getting the existing object using the WeightTrackerDatabase.java getDailyWeight() method (created for this purpose), then updating the date and weight of the same object using the setDate() and setWeight() methods of the DailyWeight class. Finally, I used the WeightTrackerDatabase.java updateDailyWeight() method to update the daily weight entry in the database. 
+    * **NOTE:** This file no longer exists due to changes made in Enhancement 2, but the code and code fixes were incorporated into DailyWeightActivity. 
 * In the onClick method for the edit button (in RecyclerViewAdapter.java), I added code that was previously missing and was needed to:
     * get the updated daily weight entry from the database using the getDailyWeight() method of WeightTrackerDatabase.java
     * update the daily weight in the List that is used to generate the recycler view display
@@ -44,6 +45,108 @@ Here are some images of the new UI:
 
 ## Highlights of Enhancement 1:
 
+In [RecyclerViewAdapter.java](./RecyclerViewAdapter.java), the following code highlights issues that were previously preventing the recycler view from updating when a daily weight was edited. The comments explain how the issues were resolved:
+
+```java
+            // OnClick method to edit individual daily weight entries
+            //    Enhancement 1, Part 1: fixed this (previously display and DB would not update with
+            //    updated info; updated daily weight in list used to generate recycler view, and also
+            //    edited save method in DailyWeightActivity.java to properly update the daily weight object in DB)
+            mEditButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // intent to launch edit activity
+                    Intent intent = new Intent(mContext, DailyWeightActivity.class);
+                    intent.putExtra(DailyWeightActivity.EXTRA_DAILY_WEIGHT_ID, mId);    //changed extra from username to id so correct daily weight is edited
+                    intent.putExtra(DailyWeightActivity.EXTRA_LAUNCHING_ACTION, "edit");  //also put Extra to tell next activity that user wants to edit DW
+                    mContext.startActivity(intent);
+
+
+                    // use getDailyWeight method (created for this purpose) to get edited daily
+                    // weight after DailyWeightActivity ends
+                    mEditedDailyWeight = mWeightTrackerDB.getDailyWeight(mId);
+
+                    int index = mDailyWeightList.indexOf(mDailyWeight);
+                    if (index >= 0) {
+                        //update list with edited daily weight so that recycler view updates
+                        mDailyWeightList.set(index, mEditedDailyWeight);
+
+                        //notify adapter so that recycler view updates
+                        notifyItemChanged(position);
+
+                    }
+
+                    // once a daily weight is edited, get user login object from db and
+                    // update the user's alertEditedDW flag
+                    mUserLogin = mWeightTrackerDB.getUserByUsername(mUsername);
+                    mUserLogin.setAlertEditedDW(mId);    //set to id of edited DW so WeightDisplayActivity can compare to goal weight
+                    mWeightTrackerDB.updateUser(mUserLogin);
+
+                }
+            });
+```
+
+Similar issues existed when attempting to delete a daily weight: 
+
+```java
+            // OnClick method to delete individual daily weight entries
+            //    Enhancement 1, Part 2: fixed this (previously app would crash when delete button was clicked and
+            //    daily weight would not be deleted; now daily weights are deleted not only from DB
+            //    but also from list used to generate recycler view)
+
+            mDeleteButton.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    // delete DW from database
+                    mWeightTrackerDB.deleteDailyWeight(mId);
+
+                    int index = mDailyWeightList.indexOf(mDailyWeight);
+
+                    if (index >= 0) {
+                        // remove daily weight from list to ensure recycler view updates
+                        mDailyWeightList.remove(index);
+
+                        //notify adapter to ensure recycler view updates
+                        notifyItemRemoved(position);
+                    }
+
+                }
+            });
+
+        }
+```
+
+Previously, the method in EditDailyWeightActivity that was responsible for updating an existing daily weight entry did not properly update the existing daily weight object. A new object was being created instead. Here the below code in [DailyWeightActivity.java](./DailyWeightActivity.java) shows that for edited daily weights, the existing object is updated and then saved to the database again: 
+
+```java
+    // Saves the new/edited daily weight
+    public void onSaveClick(View view) {
+        //add new daily weight if user is adding data
+        if (mLaunchingAction.equals("add")){
+            
+            ...
+        }
+        //update existing daily weight if user is editing data
+        else if (mLaunchingAction.equals("edit")){
+            // get data from edit text fields
+            String editedDate = mDateInput.getText().toString();
+            String editedWeight = mWeightInput.getText().toString();
+
+            // Enhancement 1, Part 1: update daily weight object with new date and weight
+            mDailyWeight.setDate(editedDate);
+            mDailyWeight.setDailyWeight(editedWeight);
+            // Update in database
+            mWeightTrackerDB.updateDailyWeight(mDailyWeight);
+        }
+
+        // Enhancement 2 - added two lines below to send result code back to calling activity
+        Intent intent = new Intent();
+        setResult(RESULT_OK, intent);
+
+        finish();
+    }
+```
 
 # Enhancement 2: Algorithms and Data Structure
 
